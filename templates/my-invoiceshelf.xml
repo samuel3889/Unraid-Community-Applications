@@ -2,8 +2,7 @@
 <Container version="2">
   <Name>InvoiceShelfv2</Name>
   <Repository>invoiceshelf/invoiceshelf:latest</Repository>
-  <TemplateURL>https://github.com/samuel3889/Unraid-Community-Applications/blob/main</TemplateURL>
-  <Registry>https://hub.docker.com/r/invoiceshelf/invoiceshelf</Registry>
+<TemplateURL>https://raw.githubusercontent.com/samuel3889/Unraid-Community-Applications/main/templates/my-invoiceshelf.xml</TemplateURL>  <Registry>https://hub.docker.com/r/invoiceshelf/invoiceshelf</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
@@ -22,7 +21,6 @@ proxy_set_header X-Forwarded-Host $host:50443;&#13;
 proxy_set_header X-Forwarded-Port 50443;</Overview>
   <Category>Productivity: Tools:</Category>
   <WebUI>http://[IP]:[PORT:8090]/</WebUI>
-  <TemplateURL/>
   <Icon>https://raw.githubusercontent.com/clairekardas/docker-icons/refs/heads/main/invoiceshelf.png</Icon>
   <ExtraParams>-v invoiceshelf_storage:/var/www/html/storage/ -v invoiceshelf_modules:/var/www/html/Modules/</ExtraParams>
   <PostArgs/>
