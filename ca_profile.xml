@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Maintainer>
-  <!-- Required: A brief overview of who you are and what your repository contains -->
-  <Profile>Samuel's Unraid Community Applications Repository. Contains custom Docker templates for server deployments.</Profile>
-</Maintainer>
+<CommunityApplications>
+  <!-- Required profile -->
+  <Profile>
+  Samuel's Unraid Community Applications Repository. Contains custom Docker templates for server deployments.
+  </Profile>
+</CommunityApplications>
