@@ -2,7 +2,7 @@
 <Container version="2">
   <Name>InvoiceShelfv2</Name>
   <Repository>invoiceshelf/invoiceshelf:latest</Repository>
-<TemplateURL>https://raw.githubusercontent.com/samuel3889/Unraid-Community-Applications/main/templates/my-invoiceshelf.xml</TemplateURL>  <Registry>https://hub.docker.com/r/invoiceshelf/invoiceshelf</Registry>
+<TemplateURL>https://raw.githubusercontent.com/samuel3889/Unraid-Community-Applications/main/templates/invoiceshelfv2.xml</TemplateURL>  <Registry>https://hub.docker.com/r/invoiceshelf/invoiceshelf</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
