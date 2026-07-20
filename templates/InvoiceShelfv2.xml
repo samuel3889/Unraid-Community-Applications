@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>InvoiceShelfv2</Name>
-  <Repository>ghcr.io/InvoiceShelf/InvoiceShelf</Repository>
+  <Repository>https://github.com/InvoiceShelf/InvoiceShelf</Repository>
 <TemplateURL>https://raw.githubusercontent.com/samuel3889/Unraid-Community-Applications/main/templates/invoiceshelfv2.xml</TemplateURL>  <Registry>https://hub.docker.com/r/invoiceshelf/invoiceshelf</Registry>
   <Network>bridge</Network>
   <Shell>sh</Shell>
