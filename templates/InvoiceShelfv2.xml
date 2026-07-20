@@ -17,7 +17,8 @@ Note: this means logo uploads, custom PDF templates, and logs live inside Docker
 If running behind Nginx reverse proxy with a nonstandard port (eg. https://your-domain.com:50443), the custom configuration for location '/' must be:&#13;
 proxy_set_header X-Forwarded-Host $host:50443;&#13;
 proxy_set_header X-Forwarded-Port 50443;</Overview>
-  <Category>Productivity</Category>
+  <Beta>false</Beta>
+  <Category>Productivity:</Category>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <Icon>https://raw.githubusercontent.com/clairekardas/docker-icons/refs/heads/main/invoiceshelf.png</Icon>
   <ExtraParams>-v invoiceshelf_storage:/var/www/html/storage/ -v invoiceshelf_modules:/var/www/html/Modules/</ExtraParams>
