@@ -22,11 +22,7 @@ proxy_set_header X-Forwarded-Port 50443;</Overview>
   <WebUI>http://[IP]:[PORT:8090]/</WebUI>
   <Icon>https://raw.githubusercontent.com/clairekardas/docker-icons/refs/heads/main/invoiceshelf.png</Icon>
   <ExtraParams>-v invoiceshelf_storage:/var/www/html/storage/ -v invoiceshelf_modules:/var/www/html/Modules/</ExtraParams>
-  <PostArgs/>
-  <CPUset/>
   <Date>2026-07-18</Date>
-  <DonateText/>
-  <DonateLink/>
   <Requires>Requires an already-running external PostgreSQL 16 server with a database + user created for InvoiceShelf. This template does not create the database for you.</Requires>
   <Config Name="WebUI Port" Target="8080" Default="8090" Mode="tcp" Description="Host port for the InvoiceShelf web UI. If you're routing to this container by name through a reverse proxy on a custom network, you can leave this or remove it." Type="Port" Display="always" Required="true" Mask="false">8090</Config>
   <Config Name="APP_NAME" Target="APP_NAME" Default="InvoiceShelf" Mode="" Description="Application name" Type="Variable" Display="always" Required="true" Mask="false">InvoiceShelf</Config>
@@ -50,5 +46,4 @@ proxy_set_header X-Forwarded-Port 50443;</Overview>
   <Config Name="AUTORUN_LARAVEL_MIGRATION" Target="AUTORUN_LARAVEL_MIGRATION" Default="false" Mode="" Description="Auto-run DB migrations on boot (set true for first run against a fresh DB, then false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
   <Config Name="AUTORUN_LARAVEL_OPTIMIZE" Target="AUTORUN_LARAVEL_OPTIMIZE" Default="false" Mode="" Description="Auto-run Laravel optimize on boot" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
   <Config Name="PHP_OPCACHE_ENABLE" Target="PHP_OPCACHE_ENABLE" Default="1" Mode="" Description="Enable PHP OPcache" Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
-  <TailscaleStateDir/>
 </Container>
