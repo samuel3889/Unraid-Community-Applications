@@ -9,7 +9,9 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/InvoiceShelf/InvoiceShelf/issues</Support>
   <Project>https://github.com/InvoiceShelf/InvoiceShelf</Project>
-  <Overview>InvoiceShelf is a self-hosted, open source invoicing and estimates app built with Laravel and VueJS. This template runs the webapp only (pgsql variant) and expects an external PostgreSQL 16 server/container to already be running - it does NOT deploy its own database. Before starting this container, create a database and a dedicated user for InvoiceShelf on your existing Postgres instance, then fill in the DB_* variables below. Reference compose file: https://github.com/InvoiceShelf/docker/blob/master/docker-compose.pgsql.yml&#13;
+  <Overview>This is the template of InvoiceShelf that just works.&#13;
+&#13;    
+InvoiceShelf is a self-hosted, open source invoicing and estimates app built with Laravel and VueJS. This template runs the webapp only (pgsql variant) and expects an external PostgreSQL 16 server/container to already be running - it does NOT deploy its own database. Before starting this container, create a database and a dedicated user for InvoiceShelf on your existing Postgres instance, then fill in the DB_* variables below. Reference compose file: https://github.com/InvoiceShelf/docker/blob/master/docker-compose.pgsql.yml&#13;
 &#13;
 Storage is handled with Docker-managed named volumes (invoiceshelf_storage, invoiceshelf_modules) so the container works immediately with zero manual setup - no directories to create, no permissions to fix. Docker auto-populates them with the correct files and ownership from the image on first start.&#13;
 &#13;
