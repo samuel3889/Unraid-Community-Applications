@@ -9,44 +9,82 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/InvoiceShelf/InvoiceShelf/issues</Support>
   <Project>https://github.com/InvoiceShelf/InvoiceShelf</Project>
-  <Overview>This is the template of InvoiceShelf that just works.&#13;
-&#13;    
-InvoiceShelf is a self-hosted, open source invoicing and estimates app built with Laravel and VueJS. This template runs the webapp only (pgsql variant) and expects an external PostgreSQL 16 server/container to already be running - it does NOT deploy its own database. Before starting this container, create a database and a dedicated user for InvoiceShelf on your existing Postgres instance, then fill in the DB_* variables below. Reference compose file: https://github.com/InvoiceShelf/docker/blob/master/docker-compose.pgsql.yml&#13;
+  <Overview>InvoiceShelf is a self-hosted, open source invoicing and estimates app built with Laravel and VueJS.&#13;
 &#13;
-Storage is handled with Docker-managed named volumes (invoiceshelf_storage, invoiceshelf_modules) so the container works immediately with zero manual setup - no directories to create, no permissions to fix. Docker auto-populates them with the correct files and ownership from the image on first start.&#13;
+=====================================================&#13;
+ READ THIS FIRST - 3 STEPS, THEN YOU'RE DONE&#13;
+=====================================================&#13;
 &#13;
-Note: this means logo uploads, custom PDF templates, and logs live inside Docker's own volume storage rather than a visible /mnt/user/appdata folder, so they are NOT included in typical Appdata Backup plugin runs. Your invoices, customers, and payments are unaffected either way since those live in your external Postgres database. If you want those files backed up too, see the "Backing up named volumes" note in Support/docs, or switch these to bind-mounted paths if you prefer visibility over zero-touch setup.&#13;
+STEP 1 - Create the database.&#13;
+This template runs the webapp only (pgsql variant). It does NOT deploy its own database and expects an external PostgreSQL 16 server or container to already be running. On that Postgres instance, create a database and a dedicated user that owns it, then fill in the DB_* fields below. Use a real password, not the Postgres superuser. Reference compose file: https://github.com/InvoiceShelf/docker/blob/master/docker-compose.pgsql.yml&#13;
+&#13;
+STEP 2 - Create the two appdata folders BEFORE clicking Apply.&#13;
+Paste this into the Unraid terminal (adjust paths if you changed the Uploads/Logs mappings below):&#13;
+&#13;
+mkdir -p /mnt/user/appdata/InvoiceShelf/uploads /mnt/user/appdata/InvoiceShelf/logs&#13;
+chown -R 82:82 /mnt/user/appdata/InvoiceShelf&#13;
+chmod -R 775 /mnt/user/appdata/InvoiceShelf&#13;
+&#13;
+Why: this image runs as the unprivileged user www-data (UID/GID 82:82 on Alpine). If Unraid creates these folders itself they come out root-owned and the setup wizard's permission check will fail. This is a one-time command - the ownership survives container recreation, image pulls and app updates, so you never run it again.&#13;
+&#13;
+STEP 3 - Run the setup wizard, and expect one red dot.&#13;
+On the wizard's Permissions screen, bootstrap/cache/ shows red. This is expected and harmless. That folder ships inside the image as mode 755, and the wizard compares the octal mode against 775 instead of testing whether the folder is actually writable. It IS writable - it is owned by www-data and Laravel caches config and routes into it successfully on every boot. Click Continue.&#13;
+storage/framework/ and storage/logs/ should both be green. If storage/logs/ is red, you skipped Step 2.&#13;
+&#13;
+=====================================================&#13;
+ STORAGE LAYOUT&#13;
+=====================================================&#13;
+&#13;
+The full Laravel storage tree lives on a Docker-managed named volume (invoiceshelf_storage) which Docker auto-populates from the image on first start. Two folders are bind-mounted on top of it into /mnt/user/appdata so the Appdata Backup plugin can see them:&#13;
+&#13;
+Uploads = company logos and files added through the UI (Laravel's public disk).&#13;
+Logs    = laravel.log, for troubleshooting.&#13;
+&#13;
+DO NOT bind-mount the whole /var/www/html/storage directory to an empty appdata folder. Unlike named volumes, bind mounts do not copy content out of the image, so doing that erases the shipped PDF templates and the container dies on boot with: The "/var/www/html/storage/app/templates/pdf" directory does not exist. The nested layout in this template exists specifically to avoid that.&#13;
+&#13;
+Consequence: the stock PDF templates stay inside the named volume and are not covered by Appdata Backup. That is fine for almost everyone, since they ship with the image and are restored on every pull. If you hand-edit them, back up the named volume separately.&#13;
+&#13;
+Your invoices, customers and payments live in your external Postgres database. Back that database up - this template cannot do it for you.&#13;
+&#13;
+=====================================================&#13;
+ REVERSE PROXY&#13;
+=====================================================&#13;
 &#13;
 If running behind Nginx reverse proxy with a nonstandard port (eg. https://your-domain.com:50443), the custom configuration for location '/' must be:&#13;
 proxy_set_header X-Forwarded-Host $host:50443;&#13;
-proxy_set_header X-Forwarded-Port 50443;</Overview>
+proxy_set_header X-Forwarded-Port 50443;&#13;
+&#13;
+If login bounces you back to the login screen or throws a 419 / CSRF token mismatch, the host:port you typed in the browser is missing from SANCTUM_STATEFUL_DOMAINS. That variable must list every address you load the app from, including the port whenever it is not 80 or 443.</Overview>
   <Beta>false</Beta>
   <Category>Productivity:</Category>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <Icon>https://raw.githubusercontent.com/clairekardas/docker-icons/refs/heads/main/invoiceshelf.png</Icon>
   <ExtraParams>-v invoiceshelf_storage:/var/www/html/storage/ -v invoiceshelf_modules:/var/www/html/Modules/</ExtraParams>
-  <Date>2026-07-18</Date>
-  <Requires>Requires an already-running external PostgreSQL 16 server with a database + user created for InvoiceShelf. This template does not create the database for you.</Requires>
-  <Config Name="WebUI Port" Target="8080" Default="8080" Mode="tcp" Description="Host port for the InvoiceShelf web UI. If you're routing to this container by name through a reverse proxy on a custom network, you can leave this or remove it." Type="Port" Display="always" Required="true" Mask="false">8090</Config>
-  <Config Name="APP_NAME" Target="APP_NAME" Default="InvoiceShelf" Mode="" Description="Application name" Type="Variable" Display="always" Required="true" Mask="false">InvoiceShelf</Config>
-  <Config Name="APP_URL" Target="APP_URL" Default="https://YOUR-DOMAIN.COM" Mode="" Description="Primary public URL used for generated links (emails, PDFs). Use your external https URL if you access from outside; local network access still works independently as long as SANCTUM_STATEFUL_DOMAINS below includes it too." Type="Variable" Display="always" Required="false" Mask="false">https://YOUR-DOMAIN.COM</Config>
-  <Config Name="SESSION_DOMAIN" Target="SESSION_DOMAIN" Default="" Mode="" Description="Leave BLANK if you access InvoiceShelf from more than one hostname/IP (e.g. local IP + external domain) - a blank value lets the session cookie scope itself to whichever host was used. Only set this to a single domain if you exclusively access via that one domain." Type="Variable" Display="always" Required="false" Mask="false"/>
-  <Config Name="SANCTUM_STATEFUL_DOMAINS" Target="SANCTUM_STATEFUL_DOMAINS" Default="SERVER-IP:8090,YOUR-DOMAIN.COM" Mode="" Description="Comma-separated list of every host:port you'll load the app from - e.g. your LAN IP:port AND your external reverse-proxy domain:port. Include the port whenever it isn't the default 80/443." Type="Variable" Display="always" Required="true" Mask="false">SERVER-IP:8080,YOUR-DOMAIN.COM</Config>
-  <Config Name="TRUSTED_PROXIES" Target="TRUSTED_PROXIES" Default="*" Mode="" Description="Required for correct HTTPS/host detection behind a reverse proxy. Set to * to trust all proxies, or restrict to your reverse proxy's container/LAN IP for tighter security." Type="Variable" Display="always" Required="true" Mask="false">*</Config>
-  <Config Name="DB_HOST" Target="DB_HOST" Default="CHANGE_ME" Mode="" Description="Hostname/container name or IP of your existing PostgreSQL 16 server. If it's on the serverproxy network, its container name works; otherwise use the Unraid server IP." Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Date>2026-08-02</Date>
+  <Requires>1) An already-running external PostgreSQL 16 server with a database + user created for InvoiceShelf - this template does not create it for you. 2) The two appdata folders created and chowned to 82:82 before first start (see Step 2 in the description above).</Requires>
+  <Config Name="WebUI Port" Target="8080" Default="8090" Mode="tcp" Description="Host port for the InvoiceShelf web UI. Change the left-hand host port if 8090 is already taken. If you route to this container by name through a reverse proxy on a custom network, you can remove this mapping entirely." Type="Port" Display="always" Required="true" Mask="false">8090</Config>
+  <Config Name="Uploads" Target="/var/www/html/storage/app/public" Default="/mnt/user/appdata/InvoiceShelf/uploads" Mode="rw" Description="Company logos and files uploaded through the web UI. Kept in appdata so the Appdata Backup plugin picks them up. IMPORTANT: create this folder and chown it to 82:82 before first start - see Step 2 in the description above." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/InvoiceShelf/uploads</Config>
+  <Config Name="Logs" Target="/var/www/html/storage/logs" Default="/mnt/user/appdata/InvoiceShelf/logs" Mode="rw" Description="Laravel application logs (laravel.log), for troubleshooting. IMPORTANT: create this folder and chown it to 82:82 before first start - see Step 2 in the description above." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/InvoiceShelf/logs</Config>
+  <Config Name="DB_HOST" Target="DB_HOST" Default="" Mode="" Description="Hostname, container name, or IP of your existing PostgreSQL 16 server. If it shares a custom Docker network with this container, the container name works; otherwise use your Unraid server IP." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="DB_DATABASE" Target="DB_DATABASE" Default="invoiceshelf" Mode="" Description="Database name. Must already exist on the external Postgres server." Type="Variable" Display="always" Required="true" Mask="false">invoiceshelf</Config>
+  <Config Name="DB_USERNAME" Target="DB_USERNAME" Default="invoiceshelf" Mode="" Description="Database user. Must already exist and own the database above. Use a dedicated user - do NOT use the postgres superuser, since that account can read and modify every other database on the server." Type="Variable" Display="always" Required="true" Mask="false">invoiceshelf</Config>
+  <Config Name="DB_PASSWORD" Target="DB_PASSWORD" Default="" Mode="" Description="Password for the database user above. Set a strong unique value - this protects your invoices, customers and payment records." Type="Variable" Display="always" Required="true" Mask="true"/>
   <Config Name="DB_PORT" Target="DB_PORT" Default="5432" Mode="" Description="PostgreSQL port" Type="Variable" Display="always" Required="true" Mask="false">5432</Config>
-  <Config Name="DB_DATABASE" Target="DB_DATABASE" Default="invoiceshelf" Mode="" Description="Database name (must already exist on the external Postgres server)" Type="Variable" Display="always" Required="true" Mask="false">invoiceshelf</Config>
-  <Config Name="DB_USERNAME" Target="DB_USERNAME" Default="invoiceshelf" Mode="" Description="Database user (must already exist and own the database)" Type="Variable" Display="always" Required="true" Mask="false">postgres</Config>
-  <Config Name="DB_PASSWORD" Target="DB_PASSWORD" Default="CHANGE_ME" Mode="" Description="Database user password" Type="Variable" Display="always" Required="true" Mask="true">postgres</Config>
-  <Config Name="APP_ENV" Target="APP_ENV" Default="production" Mode="" Description="Application environment" Type="Variable" Display="advanced" Required="true" Mask="false">production</Config>
-  <Config Name="APP_DEBUG" Target="APP_DEBUG" Default="false" Mode="" Description="Enable debug mode" Type="Variable" Display="advanced" Required="true" Mask="false">false</Config>
-  <Config Name="DB_CONNECTION" Target="DB_CONNECTION" Default="pgsql" Mode="" Description="Database driver" Type="Variable" Display="advanced" Required="true" Mask="false">pgsql</Config>
-  <Config Name="DB_PASSWORD_FILE" Target="DB_PASSWORD_FILE" Default="" Mode="" Description="Optional: path to a Docker secret file containing the DB password, instead of DB_PASSWORD" Type="Variable" Display="advanced" Required="false" Mask="false"/>
-  <Config Name="CACHE_STORE" Target="CACHE_STORE" Default="file" Mode="" Description="Cache driver" Type="Variable" Display="advanced" Required="false" Mask="false">file</Config>
-  <Config Name="SESSION_DRIVER" Target="SESSION_DRIVER" Default="file" Mode="" Description="Session driver" Type="Variable" Display="advanced" Required="false" Mask="false">file</Config>
-  <Config Name="SESSION_LIFETIME" Target="SESSION_LIFETIME" Default="240" Mode="" Description="Session lifetime in minutes" Type="Variable" Display="advanced" Required="false" Mask="false">240</Config>
-  <Config Name="AUTORUN_ENABLED" Target="AUTORUN_ENABLED" Default="true" Mode="" Description="Run startup automation on container boot" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
-  <Config Name="AUTORUN_LARAVEL_MIGRATION" Target="AUTORUN_LARAVEL_MIGRATION" Default="false" Mode="" Description="Auto-run DB migrations on boot (set true for first run against a fresh DB, then false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
-  <Config Name="AUTORUN_LARAVEL_OPTIMIZE" Target="AUTORUN_LARAVEL_OPTIMIZE" Default="false" Mode="" Description="Auto-run Laravel optimize on boot" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
-  <Config Name="PHP_OPCACHE_ENABLE" Target="PHP_OPCACHE_ENABLE" Default="1" Mode="" Description="Enable PHP OPcache" Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
+  <Config Name="APP_URL" Target="APP_URL" Default="https://YOUR-DOMAIN.COM" Mode="" Description="Primary public URL, used for links in emails and PDFs. Use your external https URL if you access from outside. Local network access still works independently, as long as SANCTUM_STATEFUL_DOMAINS below also lists it." Type="Variable" Display="always" Required="false" Mask="false">https://YOUR-DOMAIN.COM</Config>
+  <Config Name="SANCTUM_STATEFUL_DOMAINS" Target="SANCTUM_STATEFUL_DOMAINS" Default="SERVER-IP:8090,YOUR-DOMAIN.COM" Mode="" Description="Comma-separated list of every host:port you will load the app from - typically your LAN IP with the host port, plus your external reverse-proxy domain. Include the port whenever it is not 80 or 443. Getting this wrong is the #1 cause of login failing with a 419 / CSRF token mismatch." Type="Variable" Display="always" Required="true" Mask="false">SERVER-IP:8090,YOUR-DOMAIN.COM</Config>
+  <Config Name="TRUSTED_PROXIES" Target="TRUSTED_PROXIES" Default="*" Mode="" Description="Required for correct HTTPS and host detection behind a reverse proxy. Leave as * to trust all proxies, or restrict to your reverse proxy's container/LAN IP for tighter security." Type="Variable" Display="always" Required="true" Mask="false">*</Config>
+  <Config Name="APP_NAME" Target="APP_NAME" Default="InvoiceShelf" Mode="" Description="Application name shown in the UI." Type="Variable" Display="always" Required="true" Mask="false">InvoiceShelf</Config>
+  <Config Name="SESSION_DOMAIN" Target="SESSION_DOMAIN" Default="" Mode="" Description="Leave BLANK if you reach InvoiceShelf from more than one hostname or IP (e.g. LAN IP plus external domain) - blank lets the session cookie scope itself to whichever host was used. Only set a single domain here if you exclusively use that one domain." Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="TZ" Target="TZ" Default="America/New_York" Mode="" Description="Container timezone, used for timestamps on invoices and logs." Type="Variable" Display="always" Required="false" Mask="false">America/New_York</Config>
+  <Config Name="APP_ENV" Target="APP_ENV" Default="production" Mode="" Description="Application environment. Leave as production." Type="Variable" Display="advanced" Required="true" Mask="false">production</Config>
+  <Config Name="APP_DEBUG" Target="APP_DEBUG" Default="false" Mode="" Description="Debug mode. Leave false in production - true leaks stack traces and config values to anyone who can reach the app." Type="Variable" Display="advanced" Required="true" Mask="false">false</Config>
+  <Config Name="DB_CONNECTION" Target="DB_CONNECTION" Default="pgsql" Mode="" Description="Database driver. This template is the pgsql variant - do not change." Type="Variable" Display="advanced" Required="true" Mask="false">pgsql</Config>
+  <Config Name="DB_PASSWORD_FILE" Target="DB_PASSWORD_FILE" Default="" Mode="" Description="Optional: path to a Docker secret file containing the DB password, used instead of DB_PASSWORD." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="CACHE_STORE" Target="CACHE_STORE" Default="file" Mode="" Description="Cache driver." Type="Variable" Display="advanced" Required="false" Mask="false">file</Config>
+  <Config Name="SESSION_DRIVER" Target="SESSION_DRIVER" Default="file" Mode="" Description="Session driver." Type="Variable" Display="advanced" Required="false" Mask="false">file</Config>
+  <Config Name="SESSION_LIFETIME" Target="SESSION_LIFETIME" Default="240" Mode="" Description="Session lifetime in minutes before an idle user is logged out." Type="Variable" Display="advanced" Required="false" Mask="false">240</Config>
+  <Config Name="AUTORUN_ENABLED" Target="AUTORUN_ENABLED" Default="true" Mode="" Description="Run startup automation (config/route/view caching, storage symlink) on container boot." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="AUTORUN_LARAVEL_MIGRATION" Target="AUTORUN_LARAVEL_MIGRATION" Default="false" Mode="" Description="Auto-run database migrations on boot. Leave false - the setup wizard handles the initial schema. Set true temporarily only if an app update tells you migrations are pending." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="AUTORUN_LARAVEL_OPTIMIZE" Target="AUTORUN_LARAVEL_OPTIMIZE" Default="false" Mode="" Description="Auto-run Laravel optimize on boot." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="PHP_OPCACHE_ENABLE" Target="PHP_OPCACHE_ENABLE" Default="1" Mode="" Description="Enable PHP OPcache. Recommended for production performance." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
 </Container>
